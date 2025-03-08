@@ -2,7 +2,7 @@ import React from "react";
 import { Button, Form, Input, message } from "antd";
 import { Link } from "react-router-dom";
 import { register } from "../../utils/API";
-import bgImage from "../../../public/assets/bg_shop.png";
+
 
 const Register = () => {
     if (localStorage.getItem("token")) {
