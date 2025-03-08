@@ -2,6 +2,7 @@ import React from "react";
 import { Button, Form, Input, message } from "antd";
 import { Link } from "react-router-dom";
 import { register } from "../../utils/API";
+import bgImage from "../../../public/assets/bg_shop.png";
 
 const Register = () => {
     if (localStorage.getItem("token")) {
@@ -20,41 +21,63 @@ const Register = () => {
 
     return (
         <Form
+            className="login-form"
             name="register-form"
             labelCol={{ span: 8 }}
             wrapperCol={{ span: 16 }}
-            style={{ maxWidth: 600, margin: "auto", marginTop: "50px" }}
+
             onFinish={onFinish}
             autoComplete="off"
+            style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100vh",
+                maxWidth: "100%",
+                margin: "0 auto",
+                backgroundColor: "#f5f5f5",
+
+
+
+
+            }}
         >
-            <Form.Item
-                label="name"
-                name="name"
-                rules={[{ required: true, message: "Please enter your name!" }]}
-            >
-                <Input />
-            </Form.Item>
+            <div className="login-form-inputs">
+                <h1>Hello There</h1>
+                <Form.Item
+                    label="name"
+                    name="name"
+                    rules={[{ required: true, message: "Please enter your name!" }]}
+                >
+                    <Input />
+                </Form.Item>
 
-            <Form.Item
-                label="username"
-                name="username"
-                rules={[{ required: true, message: "Please enter a valid username" }]}
-            >
-                <Input />
-            </Form.Item>
+                <Form.Item
+                    label="username"
+                    name="username"
+                    rules={[{ required: true, message: "Please enter a valid username" }]}
+                >
+                    <Input />
+                </Form.Item>
 
-            <Form.Item
-                label="Password"
-                name="password"
-                rules={[{ required: true, message: "Please enter your password!" }]}
-            >
-                <Input.Password />
-            </Form.Item>
-            <p>Already have an account? <Link to="/login">Login</Link></p>
+                <Form.Item
+                    label="Password"
+                    name="password"
+                    rules={[{ required: true, message: "Please enter your password!" }]}
+                >
+                    <Input.Password />
+                </Form.Item>
+                <div className="login-form-buttons">
+                    <p className="login-link" >Already have an account? <Link to="/login">Login</Link></p>
 
-            <Form.Item>
-                <Button type="primary" htmlType="submit">Register</Button>
-            </Form.Item>
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit">Register</Button>
+                    </Form.Item>
+                </div>
+
+            </div>
+
         </Form>
     );
 };

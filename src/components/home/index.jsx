@@ -55,7 +55,7 @@ const Home = () => {
                 />
             </Sider>
             <Layout>
-                <Header style={{ padding: 0, background: colorBgContainer }} />
+                {/* custom header */}
                 <Content style={{ margin: "0 16px" }}>
                     <Breadcrumb style={{ margin: "16px 0" }}>
                         <Breadcrumb.Item>User</Breadcrumb.Item>
@@ -65,7 +65,7 @@ const Home = () => {
                         {renderContent()}
                     </div>
                 </Content>
-                <Footer style={{ textAlign: "center" }}>Your Footer Here</Footer>
+
             </Layout>
         </Layout>
     );

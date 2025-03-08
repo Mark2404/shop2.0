@@ -1,0 +1,93 @@
+.login-form {
+    animation: fade-in 0.5s ease-in-out;
+    background-image: url("./assets/bg_Shop.png");
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 100vh;
+
+}
+
+.login-form-inputs {
+    animation: pulse 4s linear infinite;
+
+
+    h1 {
+        color: #1677ff;
+        margin-bottom: 20px;
+    }
+
+    input {
+        width: 100%;
+    }
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background-color: #fff;
+
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 1px 3px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease-in-out;
+
+    &:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+}
+
+.login-form-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 30px;
+
+    .login-link {
+        margin-top: -25px;
+    }
+}
+
+
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: translateY(2px) translateX(0);
+    }
+
+    15% {
+        transform: translateY(-3px) translateX(2px);
+    }
+
+    30% {
+        transform: translateY(2px) translateX(-2px);
+    }
+
+    45% {
+        transform: translateY(-3px) translateX(1px);
+    }
+
+    60% {
+        transform: translateY(2px) translateX(-1px);
+    }
+
+    75% {
+        transform: translateY(-2px) translateX(1px);
+    }
+
+    100% {
+        transform: translateY(2px) translateX(0);
+    }
+}
