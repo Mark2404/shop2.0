@@ -1,0 +1,49 @@
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 80px;
+    background: rgb(255, 255, 255);
+    border-radius: 8px;
+
+    h1 {
+        margin-left: 20px;
+    }
+
+    .gruop-search {
+        width: 300px;
+        margin-left: 20px;
+    }
+}
+
+.header {
+    padding: 24px;
+
+
+}
+
+.exit-box {
+    display: flex;
+    align-items: center;
+    width: 100px;
+    height: 40px;
+    background-color: #1677FF;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-right: 20px;
+
+    p {
+        margin-left: 10px;
+        color: white;
+        font-size: 16px;
+        font-family: 'Open Sans', sans-serif;
+    }
+}
+
+.exit-icon {
+    width: 20px;
+    height: 20px;
+    color: #fff;
+    margin-left: 10px;
+    cursor: pointer;
+}

@@ -4,8 +4,9 @@ import Profile from "../profile";
 import Groups from "../groups";
 import { UserOutlined, TeamOutlined, FileOutlined } from "@ant-design/icons";
 import { Breadcrumb, Layout, Menu, theme } from "antd";
+import Header from "../header";
 
-const { Header, Content, Footer, Sider } = Layout;
+const { Content, Footer, Sider } = Layout;
 
 const getItem = (label, key, icon) => ({ key, icon, label });
 
@@ -55,7 +56,7 @@ const Home = () => {
                 />
             </Sider>
             <Layout>
-                {/* custom header */}
+                <Header></Header>
                 <Content style={{ margin: "0 16px" }}>
                     <Breadcrumb style={{ margin: "16px 0" }}>
                         <Breadcrumb.Item>User</Breadcrumb.Item>
