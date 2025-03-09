@@ -14,8 +14,8 @@ const index = () => {
         <div className='header'>
             <header>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <h1>At grandma's</h1>
-                    <p>family group shop list</p>
+                    <h1>Useful product list</h1>
+
                 </div>
 
 

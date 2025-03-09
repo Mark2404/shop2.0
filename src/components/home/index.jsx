@@ -4,6 +4,7 @@ import Profile from "../profile";
 import Groups from "../groups";
 import { UserOutlined, TeamOutlined, FileOutlined } from "@ant-design/icons";
 import { Breadcrumb, Layout, Menu, theme } from "antd";
+import { FaShopify } from "react-icons/fa";
 import Header from "../header";
 
 const { Content, Footer, Sider } = Layout;
@@ -11,9 +12,10 @@ const { Content, Footer, Sider } = Layout;
 const getItem = (label, key, icon) => ({ key, icon, label });
 
 const items = [
+
     getItem("Profile", "1", <UserOutlined />),
     getItem("Groups", "2", <TeamOutlined />),
-    getItem("Files", "3", <FileOutlined />),
+    // getItem("Files", "3", <FileOutlined />),
 ];
 
 const Home = () => {
@@ -46,6 +48,7 @@ const Home = () => {
     return (
         <Layout style={{ minHeight: "100vh" }}>
             <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed}>
+                <div collapsible collapsed={collapsed} onCollapse={setCollapsed} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", width: "100%", height: "40px", backgroundColor: "#1677FF", marginBottom: "20px" }}><FaShopify style={{ color: "white", width: "30px", height: "30px" }} /> </div>
                 <div className="demo-logo-vertical" />
                 <Menu
                     theme="dark"

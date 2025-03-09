@@ -2,7 +2,10 @@ import React from 'react'
 
 const index = () => {
     return (
-        <div>profile</div>
+        <>
+            <h1>profile</h1>
+
+        </>
     )
 }
 
