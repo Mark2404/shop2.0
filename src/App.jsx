@@ -6,19 +6,21 @@ import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import Register from './components/register';
 import PrivateRoute from './Router/PrivateRoute';
 const queryClient = new QueryClient()
+import { AuthProvider } from "./components/AuthContext";
 const App = () => {
   return (
     <>
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
-          <Routes>
-            <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
-            <Route path='/register' element={<Register />} />
-            <Route path="/login" element={<Login />} />
+          <AuthProvider>
 
-          </Routes>
+            <Routes>
+              <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+              <Route path='/register' element={<Register />} />
+              <Route path="/login" element={<Login />} />
+            </Routes>
+          </AuthProvider>
         </QueryClientProvider>
-
       </BrowserRouter>
     </>
   )

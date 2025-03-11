@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Profile from "../profile";
 import Groups from "../groups";
-import { UserOutlined, TeamOutlined, FileOutlined } from "@ant-design/icons";
+import { UserOutlined, TeamOutlined, } from "@ant-design/icons";
 import { Breadcrumb, Layout, Menu, theme } from "antd";
 import { FaShopify } from "react-icons/fa";
 import Header from "../header";
-
-const { Content, Footer, Sider } = Layout;
+import Profile from "../profile";
+const { Content, Sider } = Layout;
 
 const getItem = (label, key, icon) => ({ key, icon, label });
 
