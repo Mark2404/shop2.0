@@ -1,14 +1,12 @@
 import axios from "axios";
-import { data } from "react-router-dom";
+
 
 const API_URL = "https:nt-shopping-list.onrender.com";
 
 const api = axios.create({
-    baseURL: API_URL,
-    headers: {
-        "Content-Type": "application/json"
-    }
-})
+    baseURL: "https://nt-shopping-list.onrender.com", // ✅ Правильный URL!
+    headers: { "Content-Type": "application/json" }
+});
 
 export const setAuthToken = (token) => {
     if (token) {
@@ -59,4 +57,5 @@ export const logout = () => {
     window.location.reload();
 
 }
+
 export default api
