@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, Button, Input, List, Avatar } from "antd";
 import "./index.scss";
 import { useAuth } from "../AuthContext";
-import axios from "axios";
+import useUsers from "../hooks/useUsers";
 
 const Index = () => {
     const [groupName, setGroupName] = useState("");
@@ -10,38 +10,25 @@ const Index = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalType, setModalType] = useState("");
     const { user } = useAuth();
+    const { users, searchUsers } = useUsers();
 
     const [groups, setGroups] = useState([
         { id: 1, name: "apple" },
         { id: 2, name: "tuf gaming" },
     ]);
 
-    const [groupMembers, setGroupMembers] = useState([
-        { id: 1, name: "John Doe", avatar: "https://i.pravatar.cc/40?img=1" },
-        { id: 2, name: "Jane Smith", avatar: "https://i.pravatar.cc/40?img=2" },
-    ]);
+
 
     const openModal = (type) => {
         setModalType(type);
         setIsModalOpen(true);
     };
 
-    const handleDeleteUser = async () => {
-        if (!user || !user.username) {
-            console.error("User data is missing!", user);
-            alert("User data is unavailable.");
-            return;
+    useEffect(() => {
+        if (searchUser) {
+            searchUsers(searchUser);
         }
-
-        try {
-            console.log("Deleting user:", user);
-            await axios.delete(`/api/users/${user._id}`);
-            alert("User deleted successfully!");
-        } catch (error) {
-            console.error("Error deleting user:", error.response?.data || error.message);
-            alert("Failed to delete user.");
-        }
-    };
+    }, [searchUser]);
 
     if (!user) return <p className="not-authenticated">Вы не авторизованы</p>;
 
@@ -88,11 +75,14 @@ const Index = () => {
 
                 <List
                     className="member-list"
-                    dataSource={groupMembers}
+                    dataSource={users}
                     renderItem={(member) => (
-                        <List.Item>
+                        <List.Item className="users-list">
                             <Avatar src={member.avatar} />
                             <span>{member.name}</span>
+                            <Button type="primary">
+                                Add
+                            </Button>
                         </List.Item>
                     )}
                 />

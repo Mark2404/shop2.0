@@ -64,33 +64,6 @@
     }
 }
 
-// Стили для модального окна
-.custom-modal {
-    .ant-modal-content {
-        border-radius: 10px;
-        padding: 20px;
-    }
-
-    .ant-modal-title {
-        font-size: 20px;
-        font-weight: 600;
-    }
-
-    p {
-        font-size: 16px;
-        color: #666;
-        margin-bottom: 10px;
-    }
-
-    input {
-        width: 100%;
-        padding: 8px;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-    }
-
-    button {
-        width: 100%;
-        font-weight: 600;
-    }
+.users-list {
+    overflow-y: auto;
 }
