@@ -1,28 +1,24 @@
 import axios from "axios";
 
-
-const API_URL = "https:nt-shopping-list.onrender.com";
+const API_URL = "https://nt-shopping-list.onrender.com";
 
 const api = axios.create({
-    baseURL: "https://nt-shopping-list.onrender.com", // ✅ Правильный URL!
+    baseURL: API_URL,
     headers: { "Content-Type": "application/json" }
 });
 
-export const setAuthToken = (token) => {
+api.interceptors.request.use((req) => {
+    const token = localStorage.getItem("token");
     if (token) {
-        api.defaults.headers.common["Authorization"] = `Bearer ${token}`
-        localStorage.setItem("token", token);
-
-    } else {
-        delete api.defaults.headers.common["Authorization"];
-        localStorage.removeItem("token");
+        req.headers['x-auth-token'] = token;
     }
+    return req;
+});
 
-};
 export const login = async (credentials) => {
     try {
         const response = await api.post("/api/auth", credentials);
-        setAuthToken(response.data.token);
+        localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
         return response.data;
     } catch (error) {
@@ -34,7 +30,7 @@ export const login = async (credentials) => {
 export const register = async (userData) => {
     try {
         const response = await api.post("/api/users", userData);
-        setAuthToken(response.data.token);
+        localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
         return response.data;
     } catch (error) {
@@ -42,6 +38,7 @@ export const register = async (userData) => {
         throw error;
     }
 };
+
 export const deleteUser = async (userId) => {
     try {
         const response = await api.delete(`/api/users/${userId}`);
@@ -53,9 +50,13 @@ export const deleteUser = async (userId) => {
 };
 
 export const logout = () => {
-    setAuthToken(null);
-    window.location.reload();
+    try {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.reload();
+    } catch (error) {
+        console.error("Logout Error:", error.message);
+    }
+};
 
-}
-
-export default api
+export default api;

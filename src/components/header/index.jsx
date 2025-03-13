@@ -1,71 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { RxExit } from "react-icons/rx";
-import { Modal, Input, Button, Spin } from 'antd';
-import { logout } from '../../utils/API';
-import useGroups from '../hooks/useGroups';
-import './index.scss';
+import { Modal, Input, Button, message } from "antd";
+import { logout } from "../../utils/API";
+import { useGroups, useJoinGroup } from "../hooks/groupsData";
+import "./index.scss";
 
 const Header = () => {
     const [searchTerm, setSearchTerm] = useState("");
-    const { groups, isLoadingGroups } = useGroups(searchTerm);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [password, setPassword] = useState("");
+
+    const { data: groups = [], isLoading, isError } = useGroups(searchTerm);
+
+    const joinGroupMutation = useJoinGroup();
 
     const openJoinModal = (group) => {
         setSelectedGroup(group);
         setIsModalOpen(true);
     };
 
-    const handleJoinGroup = () => {
-        console.log(`Joining group: ${selectedGroup.name} with password: ${password}`);
-        setIsModalOpen(false);
-        setPassword("");
+    const handleJoinGroup = async () => {
+        if (!selectedGroup) return;
+        try {
+            await joinGroupMutation.mutateAsync({ groupId: selectedGroup.id, password });
+            message.success(`Successfully joined ${selectedGroup.name}!`);
+            setIsModalOpen(false);
+            setPassword("");
+        } catch (error) {
+            message.error("Failed to join group. Check the password.");
+        }
     };
-
+    console.log(groups);
     return (
         <div className="header">
             <header>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <h1>Useful Product List</h1>
-                </div>
+                <h1>Useful Product List</h1>
+                <Input
+                    placeholder="Search..."
+                    className="input"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    allowClear
+                />
+                {isLoading ? (
+                    <p>Loading...</p>
+                ) : isError ? (
+                    <p className="error">Error loading groups</p>
+                ) : Array.isArray(groups) && groups.length > 0 ? (
+                    <ul>
+                        {groups?.map((group) => (
+                            <li key={group.id} className="group">
+                                <h4>{group.name}</h4>
+                                <Button type="primary" onClick={() => openJoinModal(group)}>
+                                    Join
+                                </Button>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="no-results">No groups found</p>
+                )}
 
-                <label>
-                    <Input
-                        placeholder="Search..."
-                        className="input"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        allowClear
-                    />
-                    {searchTerm.length > 0 && (
-                        <div className="search-results">
-                            {groups.length > 0 && !isLoadingGroups && <h3>Groups</h3>}
-                            <ul>
-                                {isLoadingGroups ? (
-                                    <Spin className="loading" />
-                                ) : groups.length > 0 ? (
-                                    groups?.map((group, index) => (
-                                        <li key={group.id || index + 1}>
-                                            <div className="group">
-                                                <div className="group-info">
-                                                    <h4>{group.name}</h4>
-                                                    <span>{new Date(group.createdAt).toISOString().slice(0, 19).replace('T', ' ')}</span>
-                                                </div>
-                                                <p>Created By: <span>{group.owner.name}</span></p>
-                                            </div>
-                                            <Button type="primary" className="join-btn" onClick={() => openJoinModal(group)}>
-                                                Join
-                                            </Button>
-                                        </li>
-                                    ))
-                                ) : (
-                                    <p className="no-results">No groups found</p>
-                                )}
-                            </ul>
-                        </div>
-                    )}
-                </label>
 
                 <div className="exit-box" onClick={logout}>
                     <p>Log out</p>
