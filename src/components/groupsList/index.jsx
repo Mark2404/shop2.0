@@ -1,103 +1,75 @@
 import api from "../../utils/API";
-import { useQuery } from "@tanstack/react-query";
-import { Avatar, Card, Row, Col, Spin, Button, Input, List } from "antd";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Avatar, Card, Row, Col, Spin, Button, Input, List, Modal } from "antd";
 import { useState } from "react";
-
-const fetchGroups = async () => {
-    const { data } = await api.get("/groups");
-    return data;
-};
-
-const useGroups = () => {
-    return useQuery({
-        queryKey: ["groups"],
-        queryFn: fetchGroups,
-    });
-};
+import { useGroups, useMember, useJoinGroup, useMyGroups } from "../hooks/useGroups";
 
 const GroupsList = () => {
-    const { data: groups = [], isLoading } = useGroups();
     const [selectedGroup, setSelectedGroup] = useState(null);
-    const [groupName, setGroupName] = useState("");
     const [searchUser, setSearchUser] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const { myGroups, isLoadingMyGroups } = useMyGroups();
+    const { members, isLoadingMember } = useMember(searchUser);
+
+    const showAddMemberModal = () => {
+        setIsModalOpen(true);
+    };
+
+    const handleCancel = () => {
+        setIsModalOpen(false);
+        setSearchUser("");
+    };
 
     return (
-        <div style={{ padding: "20px" }}>
+        <div style={{ padding: "20px", display: "flex", flexDirection: "column", alignItems: "center" }}>
             {selectedGroup ? (
-                <div className="container">
+                <div style={{ width: "100%", maxWidth: "600px" }}>
                     <Button type="default" onClick={() => setSelectedGroup(null)} style={{ marginBottom: "10px" }}>
                         ⬅ Back to Groups
                     </Button>
-
-                    <div className="column">
-                        <h3>Groups</h3>
-                        <div className="input-row">
-                            <Input
-                                value={groupName}
-                                onChange={(e) => setGroupName(e.target.value)}
-                                placeholder="Enter group name"
-                            />
-                            <Button type="primary">Add</Button>
-                        </div>
-
-                        <List
-                            className="group-list"
-                            dataSource={groups}
-                            renderItem={(group) => (
-                                <List.Item>
-                                    {group.name}
-                                    <Button type="primary" style={{ marginLeft: "auto" }}>Купить</Button>
-                                </List.Item>
-                            )}
-                        />
-                    </div>
-
-                    <div className="column">
-                        <h3>{selectedGroup.name} - Members</h3>
-                        <div className="input-row">
-                            <Input
-                                value={searchUser}
-                                onChange={(e) => setSearchUser(e.target.value)}
-                                placeholder="Search users"
-                            />
-                            <Button type="primary">Add</Button>
-                        </div>
-
-                        <List
-                            className="member-list"
-                            dataSource={selectedGroup.members}
-                            renderItem={(member) => (
-                                <List.Item className="users-list">
-                                    <Avatar src={member.avatar} />
-                                    <span>{member.name}</span>
-                                    <Button type="primary">Add</Button>
-                                </List.Item>
-                            )}
-                        />
-                    </div>
+                    <h3 style={{ textAlign: "center" }}>{selectedGroup.name} - Members</h3>
+                    <List
+                        className="member-list"
+                        dataSource={selectedGroup.members || []}
+                        renderItem={(member) => (
+                            <List.Item key={member.id} className="users-list" style={{ display: "flex", alignItems: "center" }}>
+                                <Avatar src={member.avatar} style={{ marginRight: "10px" }} />
+                                <span>{member.name}</span>
+                            </List.Item>
+                        )}
+                    />
+                    <Button type="primary" onClick={showAddMemberModal} style={{ marginTop: "10px", width: "100%" }}>
+                        Add Member
+                    </Button>
                 </div>
             ) : (
                 <>
-                    <h3 style={{ marginBottom: "20px" }}>Your Groups</h3>
-                    {isLoading ? (
+                    <h3 style={{ marginBottom: "20px", textAlign: "center" }}>Your Groups</h3>
+                    {isLoadingMyGroups ? (
                         <Spin size="large" />
                     ) : (
-                        <Row gutter={[16, 16]}>
-                            {groups.map((group) => (
-                                <Col xs={24} sm={12} md={8} lg={6} key={group.id}>
+                        <Row gutter={[16, 16]} style={{ width: "100%" }} justify="center">
+                            {myGroups.map((group) => (
+                                <Col xs={24} sm={12} md={8} lg={6} key={group.id} style={{ display: "flex", justifyContent: "center" }}>
                                     <Card
                                         hoverable
                                         onClick={() => setSelectedGroup(group)}
                                         title={group.name}
                                         cover={<Avatar size={64} src={group.owner?.avatar} style={{ margin: "10px auto" }} />}
+                                        styles={{
+                                            body: {
+                                                padding: "10px"
+                                            }
+                                        }}
                                         style={{
                                             textAlign: "center",
                                             border: "1px solid #ddd",
                                             borderRadius: "10px",
                                             transition: "all 0.3s",
                                             cursor: "pointer",
+                                            width: "100%",
+                                            maxWidth: "250px"
                                         }}
-                                        bodyStyle={{ padding: "10px" }}
                                     >
                                         <p><strong>Owner:</strong> {group.owner?.name || "Unknown"}</p>
                                         <p><strong>Members:</strong> {group.members?.length || 0}</p>
@@ -108,8 +80,32 @@ const GroupsList = () => {
                     )}
                 </>
             )}
+
+            <Modal title="Add Member" open={isModalOpen} onCancel={handleCancel} footer={null} centered>
+                <Input
+                    value={searchUser}
+                    onChange={(e) => setSearchUser(e.target.value)}
+                    placeholder="Search users"
+                    style={{ marginBottom: "10px" }}
+                />
+                {isLoadingMember ? (
+                    <Spin size="large" />
+                ) : (
+                    <List
+                        className="search-member-list"
+                        dataSource={members}
+                        renderItem={(member) => (
+                            <List.Item key={member.id} className="users-list" style={{ display: "flex", alignItems: "center" }}>
+                                <Avatar src={member.avatar} style={{ marginRight: "10px" }} />
+                                <span style={{ flexGrow: 1 }}>{member.name}</span>
+                                <Button type="primary">Add</Button>
+                            </List.Item>
+                        )}
+                    />
+                )}
+            </Modal>
         </div>
     );
 };
 
-export { useGroups, GroupsList };
+export { GroupsList };

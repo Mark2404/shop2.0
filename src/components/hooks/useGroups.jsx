@@ -1,91 +1,94 @@
 import api from "../../utils/API";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { message, Modal, Card, List, Avatar } from "antd";
-import { useState } from "react";
+import { message, Modal } from "antd";
 
-const fetchGroups = async () => {
+
+const searchGroup = async (searchText) => {
+    if (!searchText || searchText.length < 2) return [];
+    const { data } = await api.get(`/groups/search?q=${searchText}`);
+    return data;
+}
+
+const searchMember = async (searchText) => {
+    if (!searchText || searchText.length < 2) return [];
+    const { data } = await api.get(`/users/search?q=${searchText}`);
+    return data;
+}
+
+const joinGroup = async ({ groupId, password }) => {
+    if (!groupId || !password) throw new Error("Group ID and password are required");
+    const { data } = await api.post(`/groups/${groupId}/join`, { password });
+    return data;
+};
+
+
+const fetchMyGroups = async () => {
     const { data } = await api.get("/groups");
     return data;
 };
 
-const fetchGroupById = async (groupId) => {
-    if (!groupId) throw new Error("Group ID is required");
-    const { data } = await api.get(`/groups/${groupId}`);
+
+const leaveGroup = async (groupId) => {
+    if (!groupId) throw new Error("Guruh IDsi kerak");
+    const { data } = await api.post(`/groups/${groupId}/leave`);
     return data;
 };
 
-const useGroups = () => {
-    return useQuery({
-        queryKey: ["groups"],
-        queryFn: fetchGroups,
+
+const useGroups = (searchText) => {
+    const {
+        data: groups = [],
+        isLoading: isLoadingGroups,
+        isError: isErrorGroups,
+    } = useQuery({
+        queryFn: () => searchGroup(searchText),
+        queryKey: searchText.length > 1 ? ["searchGroup", searchText] : ["searchGroup"],
+        enabled: searchText.length > 1,
+    });
+    return { groups, isLoadingGroups, isErrorGroups };
+}
+
+
+const useMember = (searchText) => {
+    const {
+        data: members = [],
+        isLoading: isLoadingMember,
+        isError: isErrorMember,
+    } = useQuery({
+        queryFn: () => searchMember(searchText),
+        queryKey: searchText.length > 1 ? ["searchMember", searchText] : ["searchMember"],
+        enabled: searchText.length > 1,
+    });
+    return { members, isLoadingMember, isErrorMember };
+}
+
+const useJoinGroup = () => {
+    return useMutation({
+        mutationFn: joinGroup,
     });
 };
 
-const useGroupDetails = (groupId) => {
-    return useQuery({
-        queryKey: ["group", groupId],
-        queryFn: () => fetchGroupById(groupId),
-        enabled: !!groupId,
+
+const useMyGroups = () => {
+    const {
+        data: myGroups = [],
+        isLoading: isLoadingMyGroups,
+        refetch
+    } = useQuery({
+        queryFn: fetchMyGroups,
+        queryKey: ["myGroups"],
     });
+
+    return { myGroups, isLoadingMyGroups, refetch };
 };
 
-const GroupsList = () => {
-    const { data: groups = [], isLoading } = useGroups();
-    const [selectedGroupId, setSelectedGroupId] = useState(null);
-    const { data: selectedGroup } = useGroupDetails(selectedGroupId);
-    const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const openModal = (groupId) => {
-        setSelectedGroupId(groupId);
-        setIsModalOpen(true);
-    };
 
-    const closeModal = () => {
-        setIsModalOpen(false);
-        setSelectedGroupId(null);
-    };
+export {
+    useGroups,
+    useMember,
+    useJoinGroup,
+    useMyGroups,
 
-    return (
-        <div>
-            <h3>Your Groups</h3>
-            {isLoading ? (
-                <p>Loading...</p>
-            ) : (
-                <div className="group-cards">
-                    {groups.map((group) => (
-                        <Card key={group.id} title={group.name} onClick={() => openModal(group.id)}>
-                            <p>Owner: {group.owner?.name || "Unknown"}</p>
-                            <p>Members: {group.members?.length || 0}</p>
-                        </Card>
-                    ))}
-                </div>
-            )}
-
-            <Modal title={selectedGroup?.name} open={isModalOpen} onCancel={closeModal} footer={null}>
-                <h4>Owner:</h4>
-                {selectedGroup?.owner ? (
-                    <List.Item>
-                        <Avatar src={selectedGroup.owner.avatar} />
-                        <span>{selectedGroup.owner.name}</span>
-                    </List.Item>
-                ) : (
-                    <p>No owner data</p>
-                )}
-
-                <h4>Members:</h4>
-                <List
-                    dataSource={selectedGroup?.members || []}
-                    renderItem={(member) => (
-                        <List.Item>
-                            <Avatar src={member.avatar} />
-                            <span>{member.name}</span>
-                        </List.Item>
-                    )}
-                />
-            </Modal>
-        </div>
-    );
 };
-
-export { useGroups, useGroupDetails, GroupsList };
