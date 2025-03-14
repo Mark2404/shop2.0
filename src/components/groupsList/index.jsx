@@ -10,6 +10,7 @@ const GroupsList = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { myGroups, isLoadingMyGroups } = useMyGroups();
     const { members, isLoadingMember } = useMember(searchUser);
+    const addUserToGroup = useMutation((userId) => api.post(`/groups/${selectedGroup.id}/add`, { userId }));
 
     const showAddMemberModal = () => {
         setIsModalOpen(true);
@@ -23,24 +24,41 @@ const GroupsList = () => {
     return (
         <div style={{ padding: "20px", display: "flex", flexDirection: "column", alignItems: "center" }}>
             {selectedGroup ? (
-                <div style={{ width: "100%", maxWidth: "600px" }}>
-                    <Button type="default" onClick={() => setSelectedGroup(null)} style={{ marginBottom: "10px" }}>
-                        ⬅ Back to Groups
-                    </Button>
-                    <h3 style={{ textAlign: "center" }}>{selectedGroup.name} - Members</h3>
-                    <List
-                        className="member-list"
-                        dataSource={selectedGroup.members || []}
-                        renderItem={(member) => (
-                            <List.Item key={member.id} className="users-list" style={{ display: "flex", alignItems: "center" }}>
-                                <Avatar src={member.avatar} style={{ marginRight: "10px" }} />
-                                <span>{member.name}</span>
-                            </List.Item>
-                        )}
-                    />
-                    <Button type="primary" onClick={showAddMemberModal} style={{ marginTop: "10px", width: "100%" }}>
-                        Add Member
-                    </Button>
+                <div style={{ width: "100%", maxWidth: "800px", display: "flex", gap: "20px" }}>
+                    <div style={{ flex: 1 }}>
+                        <Button type="default" onClick={() => setSelectedGroup(null)} style={{ marginBottom: "10px" }}>
+                            ⬅ Back to Groups
+                        </Button>
+                        <h3 style={{ textAlign: "center" }}>{selectedGroup.name} - Products</h3>
+                        <List
+                            className="product-list"
+                            dataSource={selectedGroup.products || []}
+                            renderItem={(product) => (
+                                <List.Item key={product.id} className="product-item">
+                                    <Card style={{ width: "100%" }}>
+                                        <p><strong>{product.name}</strong></p>
+                                        <p>Price: {product.price} UZS</p>
+                                    </Card>
+                                </List.Item>
+                            )}
+                        />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <h3 style={{ textAlign: "center" }}>{selectedGroup.name} - Members</h3>
+                        <List
+                            className="member-list"
+                            dataSource={selectedGroup.members || []}
+                            renderItem={(member) => (
+                                <List.Item key={member.id} className="users-list" style={{ display: "flex", alignItems: "center" }}>
+                                    <Avatar src={member.avatar} style={{ marginRight: "10px" }} />
+                                    <span>{member.name}</span>
+                                </List.Item>
+                            )}
+                        />
+                        <Button type="primary" onClick={showAddMemberModal} style={{ marginTop: "10px", width: "100%" }}>
+                            Add Member
+                        </Button>
+                    </div>
                 </div>
             ) : (
                 <>
@@ -56,20 +74,7 @@ const GroupsList = () => {
                                         onClick={() => setSelectedGroup(group)}
                                         title={group.name}
                                         cover={<Avatar size={64} src={group.owner?.avatar} style={{ margin: "10px auto" }} />}
-                                        styles={{
-                                            body: {
-                                                padding: "10px"
-                                            }
-                                        }}
-                                        style={{
-                                            textAlign: "center",
-                                            border: "1px solid #ddd",
-                                            borderRadius: "10px",
-                                            transition: "all 0.3s",
-                                            cursor: "pointer",
-                                            width: "100%",
-                                            maxWidth: "250px"
-                                        }}
+                                        style={{ textAlign: "center", border: "1px solid #ddd", borderRadius: "10px", transition: "all 0.3s", cursor: "pointer", width: "100%", maxWidth: "250px" }}
                                     >
                                         <p><strong>Owner:</strong> {group.owner?.name || "Unknown"}</p>
                                         <p><strong>Members:</strong> {group.members?.length || 0}</p>
@@ -98,7 +103,7 @@ const GroupsList = () => {
                             <List.Item key={member.id} className="users-list" style={{ display: "flex", alignItems: "center" }}>
                                 <Avatar src={member.avatar} style={{ marginRight: "10px" }} />
                                 <span style={{ flexGrow: 1 }}>{member.name}</span>
-                                <Button type="primary">Add</Button>
+                                <Button type="primary" onClick={() => addUserToGroup.mutate(member.id)}>Add</Button>
                             </List.Item>
                         )}
                     />
