@@ -14,53 +14,64 @@ const Header = () => {
     const { data: groups = [], isLoading, isError } = useGroups(searchTerm);
 
     const joinGroupMutation = useJoinGroup();
-
-    const openJoinModal = (group) => {
-        setSelectedGroup(group);
-        setIsModalOpen(true);
-    };
+    const [isLoadingJoin, setIsLoadingJoin] = useState(false);
 
     const handleJoinGroup = async () => {
         if (!selectedGroup) return;
+        setIsLoadingJoin(true);
         try {
             await joinGroupMutation.mutateAsync({ groupId: selectedGroup.id, password });
             message.success(`Successfully joined ${selectedGroup.name}!`);
             setIsModalOpen(false);
             setPassword("");
         } catch (error) {
-            message.error("Failed to join group. Check the password.");
+            message.error(error.response?.data?.message || "Failed to join group. Check the password.");
+        } finally {
+            setIsLoadingJoin(false);
         }
     };
+    const openJoinModal = (group) => {
+        setSelectedGroup(group);
+        setIsModalOpen(true);
+    };
+
+
     console.log(groups);
     return (
         <div className="header">
             <header>
                 <h1>Useful Product List</h1>
-                <Input
-                    placeholder="Search..."
-                    className="input"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    allowClear
-                />
-                {isLoading ? (
-                    <p>Loading...</p>
-                ) : isError ? (
-                    <p className="error">Error loading groups</p>
-                ) : Array.isArray(groups) && groups.length > 0 ? (
-                    <ul>
-                        {groups?.map((group) => (
-                            <li key={group.id} className="group">
-                                <h4>{group.name}</h4>
-                                <Button type="primary" onClick={() => openJoinModal(group)}>
-                                    Join
-                                </Button>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p className="no-results">No groups found</p>
-                )}
+                <div>
+                    <Input
+                        placeholder="Search groups..."
+                        className="input"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        allowClear
+                        enterButton="Search"
+                    />
+
+                    {isLoading ? (
+                        <p>Loading...</p>
+                    ) : isError ? (
+                        <p className="error">Error loading groups</p>
+                    ) : Array.isArray(groups) && groups.length > 0 ? (
+                        <ul className="groups-list">
+                            {groups.map((group) => (
+                                <li key={group.id}>
+                                    <div className="group">
+                                        <h4>{group.name}</h4>
+                                        <Button type="primary" onClick={() => openJoinModal(group)}>
+                                            Join
+                                        </Button>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (searchTerm.trim() ? (
+                        <p className="no-results">No groups found</p>
+                    ) : null)}
+                </div>
 
 
                 <div className="exit-box" onClick={logout}>
@@ -82,9 +93,8 @@ const Header = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
-                <Button type="primary" style={{ marginTop: 10 }} onClick={handleJoinGroup}>
-                    Join Group
-                </Button>
+                <Button type="primary" style={{ marginTop: 10 }} onClick={handleJoinGroup} loading={isLoadingJoin} />
+
             </Modal>
         </div>
     );
