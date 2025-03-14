@@ -6,6 +6,7 @@ import { Breadcrumb, Layout, Menu, theme } from "antd";
 import { FaShopify } from "react-icons/fa";
 import Header from "../header";
 import Profile from "../profile";
+import { GroupsList } from "../groupsList";
 const { Content, Sider } = Layout;
 
 const getItem = (label, key, icon) => ({ key, icon, label });
@@ -14,7 +15,7 @@ const items = [
 
     getItem("Profile", "1", <UserOutlined />),
     getItem("Groups", "2", <TeamOutlined />),
-    // getItem("Files", "3", <FileOutlined />),
+
 ];
 
 const Home = () => {
@@ -38,7 +39,7 @@ const Home = () => {
             case "1":
                 return <Profile />;
             case "2":
-                return <Groups />;
+                return <GroupsList />;
             default:
                 return <p>Select a menu item</p>;
         }
