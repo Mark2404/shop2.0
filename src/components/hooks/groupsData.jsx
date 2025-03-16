@@ -3,13 +3,12 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 
 
 
-
-
-const joinGroupRequest = async ({ groupId, password }) => {
-    if (!groupId || !password) throw new Error("Group ID and password are required");
-    const { data } = await api.post(`/groups/${groupId}/join`, { password });
+export const createGroup = async ({ name, password }) => {
+    if (!name || !password) throw new Error("Group name and password required");
+    const { data } = await api.post("/groups", { name, password });
     return data;
 };
+
 
 
 const searchGroup = async (searchText) => {

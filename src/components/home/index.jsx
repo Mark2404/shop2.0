@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Groups from "../groups";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createGroup } from "../hooks/groupsData";
 import { UserOutlined, TeamOutlined, PlusOutlined } from "@ant-design/icons";
-import { Breadcrumb, Layout, Menu, Button, theme } from "antd";
+import { Breadcrumb, Layout, Menu, Button, theme, Modal, Input, message } from "antd";
 import { FaShopify } from "react-icons/fa";
 import Header from "../header";
 import Profile from "../profile";
@@ -19,7 +20,11 @@ const items = [
 const Home = () => {
     const [collapsed, setCollapsed] = useState(false);
     const [selectedKey, setSelectedKey] = useState("1");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [groupName, setGroupName] = useState("");
+    const [groupPassword, setGroupPassword] = useState("");
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
 
     useEffect(() => {
         if (!localStorage.getItem("token")) {
@@ -30,6 +35,33 @@ const Home = () => {
     const {
         token: { colorBgContainer, borderRadiusLG },
     } = theme.useToken();
+
+    const createGroupMutation = useMutation({
+        mutationFn: createGroup,
+        onSuccess: () => {
+            message.success("Group created successfully!");
+            setIsModalOpen(false);
+            setGroupName("");
+            setGroupPassword("");
+            queryClient.invalidateQueries(["groups"]);
+        },
+        onError: (error) => {
+            console.error("Error creating group:", error);
+            message.error("Failed to create group. Please try again.");
+        },
+    });
+
+    const handleAddGroup = () => {
+        setIsModalOpen(true);
+    };
+
+    const handleCreateGroup = () => {
+        if (!groupName || !groupPassword) {
+            message.warning("Please fill in all fields.");
+            return;
+        }
+        createGroupMutation.mutate({ name: groupName, password: groupPassword });
+    };
 
     const renderContent = () => {
         switch (selectedKey) {
@@ -42,18 +74,12 @@ const Home = () => {
         }
     };
 
-    const handleAddGroup = () => {
-        console.log("Add Group button clicked");
-
-    };
-
     return (
         <Layout style={{ minHeight: "100vh" }}>
             <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed}>
-                <div collapsible collapsed={collapsed} onCollapse={setCollapsed} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", width: "100%", height: "40px", backgroundColor: "#1677FF", marginBottom: "20px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", width: "100%", height: "40px", backgroundColor: "#1677FF", marginBottom: "20px" }}>
                     <FaShopify style={{ color: "white", width: "30px", height: "30px" }} />
                 </div>
-                <div className="demo-logo-vertical" />
                 <Menu
                     theme="dark"
                     defaultSelectedKeys={["1"]}
@@ -79,6 +105,25 @@ const Home = () => {
                     </div>
                 </Content>
             </Layout>
+            <Modal
+                title="Create Group"
+                open={isModalOpen}
+                onOk={handleCreateGroup}
+                onCancel={() => setIsModalOpen(false)}
+            >
+                <Input
+                    placeholder="Group Name"
+                    value={groupName}
+                    onChange={(e) => setGroupName(e.target.value)}
+                    style={{ marginBottom: "10px" }}
+                />
+                <Input
+                    placeholder="Password"
+                    type="password"
+                    value={groupPassword}
+                    onChange={(e) => setGroupPassword(e.target.value)}
+                />
+            </Modal>
         </Layout>
     );
 };
