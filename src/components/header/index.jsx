@@ -10,33 +10,40 @@ const Header = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [password, setPassword] = useState("");
-
-    const { data: groups = [], isLoading, isError } = useGroups(searchTerm);
-
-    const joinGroupMutation = useJoinGroup();
-    const [isLoadingJoin, setIsLoadingJoin] = useState(false);
-
-    const handleJoinGroup = async () => {
-        if (!selectedGroup) return;
-        setIsLoadingJoin(true);
-        try {
-            await joinGroupMutation.mutateAsync({ groupId: selectedGroup.id, password });
-            message.success(`Successfully joined ${selectedGroup.name}!`);
-            setIsModalOpen(false);
-            setPassword("");
-        } catch (error) {
-            message.error(error.response?.data?.message || "Failed to join group. Check the password.");
-        } finally {
-            setIsLoadingJoin(false);
+    const { data: groups = [], isLoading: isGroupsLoading, isError: isGroupsError } = useGroups(searchTerm);
+    const { mutate: joinGroup, isLoading: isJoinLoading, isError: isJoinError, error: joinError } = useJoinGroup();
+    const handleJoin = () => {
+        if (!selectedGroup?._id) {
+            message.error("Group ID is missing!");
+            return;
         }
+        if (!password) {
+            message.warning("Please enter a password.");
+            return;
+        }
+
+        joinGroup(
+            { groupId: selectedGroup._id, password },
+            {
+                onSuccess: () => {
+                    message.success(`Successfully joined ${selectedGroup.name}!`);
+                    setPassword("");
+                    setSelectedGroup(null);
+                    setIsModalOpen(false);
+                },
+                onError: (err) => {
+                    message.error(err.response?.data?.error || "Failed to join the group.");
+                },
+            }
+        );
     };
+
+
     const openJoinModal = (group) => {
         setSelectedGroup(group);
         setIsModalOpen(true);
     };
 
-
-    console.log(groups);
     return (
         <div className="header">
             <header>
@@ -48,31 +55,33 @@ const Header = () => {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         allowClear
-                        enterButton="Search"
                     />
-
-                    {isLoading ? (
+                    {isGroupsLoading ? (
                         <p>Loading...</p>
-                    ) : isError ? (
+                    ) : isGroupsError ? (
                         <p className="error">Error loading groups</p>
                     ) : Array.isArray(groups) && groups.length > 0 ? (
                         <ul className="groups-list">
                             {groups.map((group) => (
-                                <li key={group.id}>
+                                <li key={group._id}>
                                     <div className="group">
                                         <h4>{group.name}</h4>
-                                        <Button type="primary" onClick={() => openJoinModal(group)}>
+
+                                        <Button
+                                            type="primary"
+                                            style={{ marginTop: 10 }}
+                                            onClick={() => openJoinModal(group)}
+                                        >
                                             Join
                                         </Button>
                                     </div>
                                 </li>
                             ))}
                         </ul>
-                    ) : (searchTerm.trim() ? (
+                    ) : searchTerm.trim() ? (
                         <p className="no-results">No groups found</p>
-                    ) : null)}
+                    ) : null}
                 </div>
-
 
                 <div className="exit-box" onClick={logout}>
                     <p>Log out</p>
@@ -87,14 +96,32 @@ const Header = () => {
                 footer={null}
                 className="custom-modal"
             >
-                <p>Enter group password:</p>
-                <Input.Password
-                    placeholder="Password"
+                <Input
+                    type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    style={{
+                        width: "100%",
+                        padding: "8px",
+                        borderRadius: "5px",
+                        border: "1px solid #ccc",
+                    }}
+                    placeholder="Enter group password"
                 />
-                <Button type="primary" style={{ marginTop: 10 }} onClick={handleJoinGroup} loading={isLoadingJoin} />
-
+                <Button
+                    type="primary"
+                    style={{
+                        backgroundColor: "green",
+                        color: "white",
+                        width: "100%",
+                        marginTop: "10px",
+                    }}
+                    onClick={handleJoin}
+                    disabled={isJoinLoading}
+                >
+                    {isJoinLoading ? "Joining..." : "Join"}
+                </Button>
+                {isJoinError && <p className="error">{joinError?.message || "Failed to join"}</p>}
             </Modal>
         </div>
     );

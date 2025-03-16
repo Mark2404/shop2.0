@@ -1,8 +1,7 @@
-import api from "../../utils/API";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { Avatar, Card, Row, Col, Spin, Button, Input, List, Modal } from "antd";
 import { useState } from "react";
-import { useGroups, useMember, useJoinGroup, useMyGroups } from "../hooks/useGroups";
+import { useMember, useMyGroups, useAddMember } from "../hooks/useGroups";
+import "./index.scss";
 
 const GroupsList = () => {
     const [selectedGroup, setSelectedGroup] = useState(null);
@@ -10,7 +9,7 @@ const GroupsList = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { myGroups, isLoadingMyGroups } = useMyGroups();
     const { members, isLoadingMember } = useMember(searchUser);
-    const addUserToGroup = useMutation((userId) => api.post(`/groups/${selectedGroup.id}/add`, { userId }));
+    const addMemberMutation = useAddMember();
 
     const showAddMemberModal = () => {
         setIsModalOpen(true);
@@ -103,7 +102,27 @@ const GroupsList = () => {
                             <List.Item key={member.id} className="users-list" style={{ display: "flex", alignItems: "center" }}>
                                 <Avatar src={member.avatar} style={{ marginRight: "10px" }} />
                                 <span style={{ flexGrow: 1 }}>{member.name}</span>
-                                <Button type="primary" onClick={() => addUserToGroup.mutate(member.id)}>Add</Button>
+                                <Button
+                                    type="primary"
+                                    loading={addMemberMutation.isPending}
+                                    onClick={async () => {
+                                        console.log("Attempting to add member...");
+                                        console.log("Group ID:", selectedGroup?.id, "Member ID:", member.id);
+                                        try {
+                                            const res = await addMemberMutation.mutateAsync({
+                                                groupId: selectedGroup.id,
+                                                memberId: member.id,
+                                            });
+                                            console.log("Add member response:", res);
+                                            message.success("Member added successfully!");
+                                        } catch (error) {
+                                            console.error("Error adding member:", error);
+                                            message.error(error.response?.data?.message || "Failed to add member.");
+                                        }
+                                    }}
+                                >
+                                    Add
+                                </Button>
                             </List.Item>
                         )}
                     />

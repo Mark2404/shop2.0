@@ -1,7 +1,6 @@
 import api from "../../utils/API";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
-import { message, Modal } from "antd";
+
 
 
 const searchGroup = async (searchText) => {
@@ -16,11 +15,6 @@ const searchMember = async (searchText) => {
     return data;
 }
 
-const joinGroup = async ({ groupId, password }) => {
-    if (!groupId || !password) throw new Error("Group ID and password are required");
-    const { data } = await api.post(`/groups/${groupId}/join`, { password });
-    return data;
-};
 
 
 const fetchMyGroups = async () => {
@@ -63,12 +57,6 @@ const useMember = (searchText) => {
     return { members, isLoadingMember, isErrorMember };
 }
 
-const useJoinGroup = () => {
-    return useMutation({
-        mutationFn: joinGroup,
-    });
-};
-
 
 const useMyGroups = () => {
     const {
@@ -82,13 +70,20 @@ const useMyGroups = () => {
 
     return { myGroups, isLoadingMyGroups, refetch };
 };
+export const useAddMember = () => {
+    return useMutation(async ({ groupId, memberId }) => {
+        const response = await api.post(`/groups/${groupId}/members`, { memberId });
 
-
+        console.log("API Response:", response);
+        return response.data;
+    });
+};
 
 export {
     useGroups,
     useMember,
-    useJoinGroup,
-    useMyGroups,
+
+    useMyGroups
+
 
 };
