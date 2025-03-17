@@ -38,5 +38,19 @@ const useJoinGroup = () => {
         mutationFn: joinGroup,
     });
 };
-
-export { useGroups, useJoinGroup };
+const delMember = async ({ groupId, memberId }) => {
+    if (!groupId || !memberId) throw new Error("Group ID and Member ID are required");
+    const { data } = await api.delete(`/groups/${groupId}/members/${memberId}`);
+    return data;
+};
+const leaveGroup = async (groupId) => {
+    if (!groupId) throw new Error("Group ID required");
+    const { data } = await api.post(`/groups/${groupId}/leave`);
+    return data;
+};
+const delGroup = async (groupId) => {
+    if (!groupId) throw new Error("Group ID required");
+    const { data } = await api.delete(`/groups/${groupId}`);
+    return data;
+};
+export { useGroups, useJoinGroup, delMember, leaveGroup, delGroup };

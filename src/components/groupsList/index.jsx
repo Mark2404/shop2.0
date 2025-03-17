@@ -1,24 +1,62 @@
-import { Avatar, Card, Row, Col, Spin, Button, Input, List, Modal } from "antd";
-import { useState } from "react";
+import { Avatar, Card, Row, Col, Spin, Button, Input, List, Modal, Select, message } from "antd";
+import { useState, useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { delMember, leaveGroup, delGroup } from "../hooks/groupsData";
 import { useMember, useMyGroups, useAddMember } from "../hooks/useGroups";
+import { useParams } from "react-router-dom";
 import "./index.scss";
 
 const GroupsList = () => {
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [searchUser, setSearchUser] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
+
     const { myGroups, isLoadingMyGroups } = useMyGroups();
     const { members, isLoadingMember } = useMember(searchUser);
     const addMemberMutation = useAddMember();
+    const removeMemberMutation = useMutation(delMember);
+    const { id } = useParams();
 
-    const showAddMemberModal = () => {
-        setIsModalOpen(true);
+    const { groupId } = useParams();
+
+    const handleGroupAction = async (value) => {
+        if (!selectedGroup?.id) {
+            message.error("Group ID required!");
+            return;
+        }
+
+        try {
+            if (value === "leave") {
+                await leaveGroup(selectedGroup.id);
+                message.success("You have left the group.");
+                setSelectedGroup(null);
+            } else if (value === "delete" && selectedGroup.owner) {
+                await delGroup(selectedGroup.id);
+                message.success("Group deleted successfully.");
+                setSelectedGroup(null);
+            }
+        } catch (error) {
+            console.error("Error handling group action:", error);
+            message.error(error.message || "Failed to process group action.");
+        }
     };
 
-    const handleCancel = () => {
-        setIsModalOpen(false);
-        setSearchUser("");
+    const handleRemoveMember = async (memberId) => {
+        if (!selectedGroup?.id || !memberId) {
+            message.error("Group ID and Member ID are required!");
+            return;
+        }
+
+        try {
+            await removeMemberMutation.mutateAsync({ groupId: selectedGroup.id, memberId });
+            message.success("Member removed successfully.");
+        } catch (error) {
+            console.error("Error removing member:", error);
+            message.error(error.message || "Failed to remove member.");
+        }
     };
+    console.log("Group selected:", selectedGroup);
+    console.log("My Groups:", myGroups);
 
     return (
         <div style={{ padding: "20px", display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -29,6 +67,12 @@ const GroupsList = () => {
                             ⬅ Back to Groups
                         </Button>
                         <h3 style={{ textAlign: "center" }}>{selectedGroup.name} - Products</h3>
+
+                        <Select defaultValue="" style={{ width: 150, marginBottom: 10 }} onChange={handleGroupAction}>
+                            <Select.Option value="leave">Leave Group</Select.Option>
+                            {selectedGroup.owner && <Select.Option value="delete">Delete Group</Select.Option>}
+                        </Select>
+
                         <List
                             className="product-list"
                             dataSource={selectedGroup.products || []}
@@ -42,6 +86,7 @@ const GroupsList = () => {
                             )}
                         />
                     </div>
+
                     <div style={{ flex: 1 }}>
                         <h3 style={{ textAlign: "center" }}>{selectedGroup.name} - Members</h3>
                         <List
@@ -50,11 +95,17 @@ const GroupsList = () => {
                             renderItem={(member) => (
                                 <List.Item key={member.id} className="users-list" style={{ display: "flex", alignItems: "center" }}>
                                     <Avatar src={member.avatar} style={{ marginRight: "10px" }} />
-                                    <span>{member.name}</span>
+                                    <span style={{ flexGrow: 1 }}>{member.name}</span>
+                                    {selectedGroup.owner && (
+                                        <Button danger size="small" onClick={() => handleRemoveMember(member.id)}>
+                                            Remove
+                                        </Button>
+                                    )}
                                 </List.Item>
                             )}
                         />
-                        <Button type="primary" onClick={showAddMemberModal} style={{ marginTop: "10px", width: "100%" }}>
+
+                        <Button type="primary" onClick={() => setIsModalOpen(true)} style={{ marginTop: "10px", width: "100%" }}>
                             Add Member
                         </Button>
                     </div>
@@ -73,7 +124,15 @@ const GroupsList = () => {
                                         onClick={() => setSelectedGroup(group)}
                                         title={group.name}
                                         cover={<Avatar size={64} src={group.owner?.avatar} style={{ margin: "10px auto" }} />}
-                                        style={{ textAlign: "center", border: "1px solid #ddd", borderRadius: "10px", transition: "all 0.3s", cursor: "pointer", width: "100%", maxWidth: "250px" }}
+                                        style={{
+                                            textAlign: "center",
+                                            border: "1px solid #ddd",
+                                            borderRadius: "10px",
+                                            transition: "all 0.3s",
+                                            cursor: "pointer",
+                                            width: "100%",
+                                            maxWidth: "250px",
+                                        }}
                                     >
                                         <p><strong>Owner:</strong> {group.owner?.name || "Unknown"}</p>
                                         <p><strong>Members:</strong> {group.members?.length || 0}</p>
@@ -85,7 +144,7 @@ const GroupsList = () => {
                 </>
             )}
 
-            <Modal title="Add Member" open={isModalOpen} onCancel={handleCancel} footer={null} centered>
+            <Modal title="Add Member" open={isModalOpen} onCancel={() => setIsModalOpen(false)} footer={null} centered>
                 <Input
                     value={searchUser}
                     onChange={(e) => setSearchUser(e.target.value)}
@@ -105,21 +164,7 @@ const GroupsList = () => {
                                 <Button
                                     type="primary"
                                     loading={addMemberMutation.isPending}
-                                    onClick={async () => {
-                                        console.log("Attempting to add member...");
-                                        console.log("Group ID:", selectedGroup?.id, "Member ID:", member.id);
-                                        try {
-                                            const res = await addMemberMutation.mutateAsync({
-                                                groupId: selectedGroup.id,
-                                                memberId: member.id,
-                                            });
-                                            console.log("Add member response:", res);
-                                            message.success("Member added successfully!");
-                                        } catch (error) {
-                                            console.error("Error adding member:", error);
-                                            message.error(error.response?.data?.message || "Failed to add member.");
-                                        }
-                                    }}
+                                    onClick={() => addMemberMutation.mutate({ groupId: selectedGroup.id, memberId: member.id })}
                                 >
                                     Add
                                 </Button>

@@ -68,7 +68,8 @@ const Home = () => {
             case "1":
                 return <Profile />;
             case "2":
-                return <GroupsList />;
+                return <GroupsList />
+                    ;
             default:
                 return <p>Select a menu item</p>;
         }
