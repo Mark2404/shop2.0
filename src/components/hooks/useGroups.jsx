@@ -1,5 +1,5 @@
 import api from "../../utils/API";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 
 
@@ -11,6 +11,7 @@ const searchGroup = async (searchText) => {
 
 const searchMember = async (searchText) => {
     if (!searchText || searchText.length < 2) return [];
+
     const { data } = await api.get(`/users/search?q=${searchText}`);
     return data;
 }
@@ -21,14 +22,6 @@ const fetchMyGroups = async () => {
     const { data } = await api.get("/groups");
     return data;
 };
-
-
-const leaveGroup = async (groupId) => {
-    if (!groupId) throw new Error("Guruh IDsi kerak");
-    const { data } = await api.post(`/groups/${groupId}/leave`);
-    return data;
-};
-
 
 const useGroups = (searchText) => {
     const isSearchEnabled = searchText.length > 2;
@@ -64,6 +57,19 @@ const useMember = (searchText) => {
     });
     return { members, isLoadingMember, isErrorMember };
 }
+const leaveGroup = async (groupId) => {
+    const { data } = await api.post(`/groups/${groupId}/leave`);
+    return data;
+};
+
+const useLeaveGroup = () => {
+    const queryClient = useQueryClient();
+    return useMutation(leaveGroup, {
+        onSuccess: () => {
+            queryClient.invalidateQueries(["myGroups"]);
+        },
+    });
+};
 
 
 const useMyGroups = () => {
@@ -80,9 +86,24 @@ const useMyGroups = () => {
 };
 export const useAddMember = () => {
     return useMutation(async ({ groupId, memberId }) => {
-        const response = await api.post(`/groups/${groupId}/members`, { memberId });
 
-        console.log("API Response:", response);
+        const token = localStorage.getItem("token");
+        if (!token) {
+            throw new Error("Токен отсутствует! Необходимо авторизоваться.");
+        }
+
+
+        const response = await api.post(
+            `/groups/${groupId}/members`,
+            { memberId },
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-access-token": token
+                },
+            }
+        );
+        console.log("API Response:", response.data);
         return response.data;
     });
 };
@@ -90,8 +111,6 @@ export const useAddMember = () => {
 export {
     useGroups,
     useMember,
-
-    useMyGroups
-
-
+    useMyGroups,
+    useLeaveGroup
 };

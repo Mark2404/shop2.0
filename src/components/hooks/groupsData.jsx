@@ -1,5 +1,5 @@
 import api from "../../utils/API";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 
 
@@ -10,7 +10,14 @@ export const createGroup = async ({ name, password }) => {
 };
 
 
-
+const useDeleteGroup = () => {
+    const queryClient = useQueryClient();
+    return useMutation(deleteGroup, {
+        onSuccess: () => {
+            queryClient.invalidateQueries(["myGroups"]);
+        },
+    });
+};
 const searchGroup = async (searchText) => {
     if (!searchText || searchText.length < 2) return [];
     const { data } = await api.get(`/groups/search?q=${searchText}`);
@@ -43,14 +50,33 @@ const delMember = async ({ groupId, memberId }) => {
     const { data } = await api.delete(`/groups/${groupId}/members/${memberId}`);
     return data;
 };
-const leaveGroup = async (groupId) => {
-    if (!groupId) throw new Error("Group ID required");
-    const { data } = await api.post(`/groups/${groupId}/leave`);
-    return data;
-};
+
 const delGroup = async (groupId) => {
     if (!groupId) throw new Error("Group ID required");
     const { data } = await api.delete(`/groups/${groupId}`);
     return data;
 };
-export { useGroups, useJoinGroup, delMember, leaveGroup, delGroup };
+
+const deleteMember = async ({ groupId, memberId }) => {
+    if (!groupId || !memberId) throw new Error("Group ID and Member ID are required");
+    const { data } = await api.post(`/groups/${groupId}/members/${memberId}`);
+    return data;
+};
+const useDeleteMember = () => {
+    const queryClient = useQueryClient();
+    return useMutation(deleteMember, {
+        onSuccess: () => {
+            queryClient.invalidateQueries(["myGroups"]);
+        },
+    });
+};
+
+
+const leaveGroup = async (groupId) => {
+    if (!groupId) throw new Error("Guruh IDsi kerak");
+    const { data } = await api.post(`/groups/${groupId}/leave`);
+    return data;
+};
+
+
+export { useGroups, useJoinGroup, delMember, delGroup, useDeleteGroup, useDeleteMember, leaveGroup };
