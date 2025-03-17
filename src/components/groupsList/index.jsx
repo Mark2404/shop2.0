@@ -17,8 +17,6 @@ const GroupsList = () => {
     const removeMemberMutation = useMutation(delMember);
     const { id } = useParams();
 
-    const { groupId } = useParams();
-
     const handleGroupAction = async (value) => {
         if (!selectedGroup?.id) {
             message.error("Group ID required!");
@@ -42,22 +40,25 @@ const GroupsList = () => {
     };
 
     const handleRemoveMember = async (memberId) => {
-        if (!selectedGroup?.id || !memberId) {
+        if (!selectedGroup?._id || !memberId) {
             message.error("Group ID and Member ID are required!");
             return;
         }
 
+        console.log("Removing member:", memberId, "from group:", selectedGroup._id);
+
         try {
-            await removeMemberMutation.mutateAsync({ groupId: selectedGroup.id, memberId });
+            await removeMemberMutation.mutateAsync({ groupId: selectedGroup._id, memberId });
             message.success("Member removed successfully.");
+            setSelectedGroup({
+                ...selectedGroup,
+                members: selectedGroup.members.filter(m => m._id !== memberId)
+            });
         } catch (error) {
             console.error("Error removing member:", error);
             message.error(error.message || "Failed to remove member.");
         }
     };
-    console.log("Group selected:", selectedGroup);
-    console.log("My Groups:", myGroups);
-
     return (
         <div style={{ padding: "20px", display: "flex", flexDirection: "column", alignItems: "center" }}>
             {selectedGroup ? (
@@ -66,12 +67,8 @@ const GroupsList = () => {
                         <Button type="default" onClick={() => setSelectedGroup(null)} style={{ marginBottom: "10px" }}>
                             ⬅ Back to Groups
                         </Button>
-                        <h3 style={{ textAlign: "center" }}>{selectedGroup.name} - Products</h3>
 
-                        <Select defaultValue="" style={{ width: 150, marginBottom: 10 }} onChange={handleGroupAction}>
-                            <Select.Option value="leave">Leave Group</Select.Option>
-                            {selectedGroup.owner && <Select.Option value="delete">Delete Group</Select.Option>}
-                        </Select>
+                        <h3 style={{ textAlign: "center" }}>{selectedGroup.name} - Products</h3>
 
                         <List
                             className="product-list"
@@ -88,16 +85,23 @@ const GroupsList = () => {
                     </div>
 
                     <div style={{ flex: 1 }}>
-                        <h3 style={{ textAlign: "center" }}>{selectedGroup.name} - Members</h3>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                            <h3 style={{ textAlign: "center" }}>{selectedGroup.name} - Members</h3>
+                            <Select defaultValue="" style={{ width: 150, marginBottom: 10 }} onChange={handleGroupAction}>
+                                <Select.Option value="leave">Leave Group</Select.Option>
+                                {selectedGroup.owner && <Select.Option value="delete">Delete Group</Select.Option>}
+                            </Select>
+                        </div>
                         <List
                             className="member-list"
                             dataSource={selectedGroup.members || []}
                             renderItem={(member) => (
-                                <List.Item key={member.id} className="users-list" style={{ display: "flex", alignItems: "center" }}>
+                                console.log(member),
+                                <List.Item key={member._id} className="users-list" style={{ display: "flex", alignItems: "center" }}>
                                     <Avatar src={member.avatar} style={{ marginRight: "10px" }} />
                                     <span style={{ flexGrow: 1 }}>{member.name}</span>
                                     {selectedGroup.owner && (
-                                        <Button danger size="small" onClick={() => handleRemoveMember(member.id)}>
+                                        <Button danger size="small" onClick={() => handleRemoveMember(member._id)}>
                                             Remove
                                         </Button>
                                     )}
@@ -143,36 +147,6 @@ const GroupsList = () => {
                     )}
                 </>
             )}
-
-            <Modal title="Add Member" open={isModalOpen} onCancel={() => setIsModalOpen(false)} footer={null} centered>
-                <Input
-                    value={searchUser}
-                    onChange={(e) => setSearchUser(e.target.value)}
-                    placeholder="Search users"
-                    style={{ marginBottom: "10px" }}
-                />
-                {isLoadingMember ? (
-                    <Spin size="large" />
-                ) : (
-                    <List
-                        className="search-member-list"
-                        dataSource={members}
-                        renderItem={(member) => (
-                            <List.Item key={member.id} className="users-list" style={{ display: "flex", alignItems: "center" }}>
-                                <Avatar src={member.avatar} style={{ marginRight: "10px" }} />
-                                <span style={{ flexGrow: 1 }}>{member.name}</span>
-                                <Button
-                                    type="primary"
-                                    loading={addMemberMutation.isPending}
-                                    onClick={() => addMemberMutation.mutate({ groupId: selectedGroup.id, memberId: member.id })}
-                                >
-                                    Add
-                                </Button>
-                            </List.Item>
-                        )}
-                    />
-                )}
-            </Modal>
         </div>
     );
 };

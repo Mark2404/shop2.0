@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { RxExit } from "react-icons/rx";
-import { Modal, Input, Button, message } from "antd";
+import { Modal, Input, Button, message, Spin } from "antd";
 import { logout } from "../../utils/API";
 import { useGroups, useJoinGroup } from "../hooks/groupsData";
 import "./index.scss";
@@ -57,7 +57,11 @@ const Header = () => {
                         allowClear
                     />
                     {isGroupsLoading ? (
-                        <p>Loading...</p>
+                        <div style={{ position: "relative", display: "flex", justifyContent: "center" }}>
+
+                        </div>
+
+
                     ) : isGroupsError ? (
                         <p className="error">Error loading groups</p>
                     ) : Array.isArray(groups) && groups.length > 0 ? (

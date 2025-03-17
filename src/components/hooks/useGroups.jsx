@@ -31,17 +31,25 @@ const leaveGroup = async (groupId) => {
 
 
 const useGroups = (searchText) => {
+    const isSearchEnabled = searchText.length > 2;
+
     const {
         data: groups = [],
-        isLoading: isLoadingGroups,
-        isError: isErrorGroups,
+        isLoading,
+        isError,
+        isFetching
     } = useQuery({
         queryFn: () => searchGroup(searchText),
-        queryKey: searchText.length > 1 ? ["searchGroup", searchText] : ["searchGroup"],
-        enabled: searchText.length > 1,
+        queryKey: isSearchEnabled ? ["searchGroup", searchText] : ["allGroups"],
+        enabled: isSearchEnabled,
     });
-    return { groups, isLoadingGroups, isErrorGroups };
-}
+
+    return {
+        groups,
+        isLoadingGroups: isSearchEnabled ? isLoading || isFetching : false,
+        isErrorGroups: isError
+    };
+};
 
 
 const useMember = (searchText) => {
